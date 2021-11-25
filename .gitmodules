@@ -1,0 +1,3 @@
+[submodule "pizza-graphql-backend"]
+	path = pizza-graphql-backend
+	url = https://github.com/scarletcamomile/pizza-graphql-backend
