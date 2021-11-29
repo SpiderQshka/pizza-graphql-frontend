@@ -1,0 +1,14 @@
+query GetOrders {
+  orders {
+    id
+    totalPrice
+    totalAmount
+    orderedPizzas {
+      pizzaName
+      dough
+      size
+      price
+      amount
+    }
+  }
+}

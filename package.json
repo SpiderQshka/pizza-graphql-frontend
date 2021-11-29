@@ -1,0 +1,12 @@
+{
+  "name": "pizza-graphql-frontend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/SpiderQshka/pizza-graphql-frontend",
+  "author": "SpiderQshka <prusov.200211@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "client:dev": "cd client && yarn start",
+    "server:dev": "cd server && yarn dev"
+  }
+}

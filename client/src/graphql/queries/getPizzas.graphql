@@ -1,0 +1,14 @@
+query GetPizzas {
+  pizzas {
+    id
+    name
+    image
+    popularity
+    modifications {
+      id
+      dough
+      size
+      price
+    }
+  }
+}
