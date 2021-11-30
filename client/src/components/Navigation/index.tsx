@@ -20,13 +20,13 @@ export const Navigation: FC = () => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link as={Link} to="/" active={currentLocation === "/"}>
-              Pizzas
+              Все пиццы
             </Nav.Link>
             <Nav.Link as={Link} to="/cart" active={currentLocation === "/cart"}>
-              Cart
+              Корзина
             </Nav.Link>
             <Nav.Link as={Link} to="/orders" active={currentLocation === "/orders"}>
-              Orders
+              Заказы
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>

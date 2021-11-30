@@ -1,17 +1,16 @@
-import React, { FC, useState } from "react";
-import { find, noop, uniq } from "lodash";
+import React, { FC, useEffect, useState } from "react";
+import { find, uniq } from "lodash";
+import { Card, Form, Button } from "react-bootstrap";
+
 import { OrderedPizzasInput, Pizza, PizzaModification } from "graphql/types";
-import { addPizzaToCart } from "helpers";
-import { useHistory } from "react-router";
-import { Card, Col, Form, Row, Button } from "react-bootstrap";
+import { addPizzaToCart, checkIsPizzaInCart } from "helpers";
 import pizzaImg from "images/pizza.png";
 
-interface IPizzaItemProps {
+export interface IPizzaItemProps {
   pizza: Omit<Pizza, "modifications"> & { modifications: Omit<PizzaModification, "pizzasIds">[] };
 }
 
 export const PizzaItem: FC<IPizzaItemProps> = ({ pizza }) => {
-  const history = useHistory();
   const doughs = uniq(pizza.modifications.map(({ dough }) => dough));
   const sizes = uniq(pizza.modifications.map(({ size }) => size));
 
@@ -26,6 +25,11 @@ export const PizzaItem: FC<IPizzaItemProps> = ({ pizza }) => {
   };
 
   const [selectedPizza, setSelectedPizza] = useState<OrderedPizzasInput>(defaultPizza);
+  const [isSelectedPizzaInCart, setIsSelectedPizzaInCart] = useState(false);
+
+  useEffect(() => {
+    setIsSelectedPizzaInCart(checkIsPizzaInCart(selectedPizza));
+  }, [selectedPizza]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLFormElement>) => {
     const updatedPizza = {
@@ -36,51 +40,46 @@ export const PizzaItem: FC<IPizzaItemProps> = ({ pizza }) => {
     if (e.target.name === "dough") updatedPizza.dough = e.target.value;
     if (e.target.name === "amount") updatedPizza.amount = +e.target.value;
 
-    updatedPizza.price = calculatePizzaPrice(updatedPizza.size, updatedPizza.dough, updatedPizza.amount);
+    updatedPizza.price = calculatePizzaPrice(updatedPizza.size, updatedPizza.dough);
 
     setSelectedPizza(updatedPizza);
   };
 
-  const handleFormSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
-    // TODO Find better type
+  const handleFormSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
+
     addPizzaToCart(selectedPizza);
-    const shouldRedirectToCart = window.confirm(`Pizza ${selectedPizza.pizzaName} added to your cart. Do you want to make an order?`);
-    if (shouldRedirectToCart) history.push("/cart");
+    setIsSelectedPizzaInCart(true);
   };
 
   return (
-    <Card>
+    <Card className="h-100">
       <Card.Img variant="top" src={pizzaImg} className="p-3" />
-      <Card.Body>
-        <Card.Title>{pizza.name}</Card.Title>
-        <Card.Subtitle className="mb-2 text-muted">{pizza.id}</Card.Subtitle>
-        <Form onChange={handleFormChange} onSubmit={handleFormSubmit}>
-          <Form.Group className="mb-3 align-items-center">
-            <Form.Label>Dough</Form.Label>
-            <div>
-              {doughs.map((dough) => (
-                <Form.Check key={dough} type="radio" inline id={`${pizza.id}-${dough}`} label={dough} name="dough" value={dough} checked={selectedPizza.dough === dough} onChange={noop} />
-              ))}
-            </div>
-          </Form.Group>
-          <Form.Group className="mb-3 align-items-center">
-            <Form.Label>Size</Form.Label>
-            <div>
-              {sizes.map((size) => (
-                <Form.Check key={size} inline type="radio" id={`${pizza.id}-${size}`} label={size} name="size" value={size} checked={selectedPizza.size === size} onChange={noop} />
-              ))}
-            </div>
+      <Card.Body className="d-flex flex-column">
+        <Card.Title className="mb-3">{pizza.name}</Card.Title>
+        <Form onChange={handleFormChange} className="flex-grow-1">
+          <Form.Group className="mb-2">
+            {doughs.map((dough) => (
+              <Form.Check key={dough} type="radio" inline id={`${pizza.id}-${dough}`} label={dough} name="dough" value={dough} defaultChecked={selectedPizza.dough === dough} />
+            ))}
           </Form.Group>
           <Form.Group className="mb-3">
-            <Form.Label>Number</Form.Label>
-            <Form.Control type="number" name="amount" id={`${pizza.id}-amount`} min={1} value={selectedPizza.amount} onChange={noop} />
+            {sizes.map((size) => (
+              <Form.Check key={size} inline type="radio" id={`${pizza.id}-${size}`} label={`${size} см.`} name="size" value={size} defaultChecked={selectedPizza.size === size} />
+            ))}
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Количество</Form.Label>
+            <Form.Control type="number" name="amount" id={`${pizza.id}-amount`} min={1} defaultValue={selectedPizza.amount} />
           </Form.Group>
           <p>
-            <b>Price:</b> {selectedPizza.price}
+            <b>Цена:</b> {calculatePizzaPrice(selectedPizza.size, selectedPizza.dough, selectedPizza.amount)} $
           </p>
-          <Button type="submit">Add to cart</Button>
         </Form>
+        {isSelectedPizzaInCart && <p className="text-muted mb-2">Пицца уже есть в корзине</p>}
+        <Button type="submit" disabled={isSelectedPizzaInCart} className="justify-self-end" onClick={handleFormSubmit}>
+          Добавить
+        </Button>
       </Card.Body>
     </Card>
   );

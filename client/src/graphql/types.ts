@@ -17,25 +17,25 @@ export type Scalars = {
 
 export type Order = {
   __typename?: 'Order';
-  id: Scalars['ID'];
-  orderedPizzas: Array<OrderedPizzas>;
-  totalAmount: Scalars['Int'];
-  totalPrice: Scalars['Float'];
+  id?: Maybe<Scalars['ID']>;
+  orderedPizzas?: Maybe<Array<Maybe<OrderedPizzas>>>;
+  totalAmount?: Maybe<Scalars['Int']>;
+  totalPrice?: Maybe<Scalars['Float']>;
 };
 
 export type OrderInput = {
-  orderedPizzas: Array<OrderedPizzasInput>;
+  orderedPizzas?: InputMaybe<Array<InputMaybe<OrderedPizzasInput>>>;
   totalAmount: Scalars['Int'];
   totalPrice: Scalars['Float'];
 };
 
 export type OrderedPizzas = {
   __typename?: 'OrderedPizzas';
-  amount: Scalars['Int'];
-  dough: Scalars['String'];
-  pizzaName: Scalars['String'];
-  price: Scalars['Float'];
-  size: Scalars['Int'];
+  amount?: Maybe<Scalars['Int']>;
+  dough?: Maybe<Scalars['String']>;
+  pizzaName?: Maybe<Scalars['String']>;
+  price?: Maybe<Scalars['Float']>;
+  size?: Maybe<Scalars['Int']>;
 };
 
 export type OrderedPizzasInput = {
@@ -50,7 +50,7 @@ export type Pizza = {
   __typename?: 'Pizza';
   id: Scalars['ID'];
   image: Scalars['String'];
-  modifications: Array<PizzaModification>;
+  modifications?: Maybe<Array<Maybe<PizzaModification>>>;
   name: Scalars['String'];
   popularity: Scalars['Int'];
 };
@@ -59,7 +59,7 @@ export type PizzaModification = {
   __typename?: 'PizzaModification';
   dough: Scalars['String'];
   id: Scalars['ID'];
-  pizzasIds: Array<Scalars['String']>;
+  pizzasIds?: Maybe<Array<Maybe<Scalars['String']>>>;
   price: Scalars['Float'];
   size: Scalars['Int'];
 };
@@ -76,8 +76,8 @@ export type RootMutationCreateOrderArgs = {
 
 export type RootQuery = {
   __typename?: 'RootQuery';
-  orders?: Maybe<Array<Order>>;
-  pizzas?: Maybe<Array<Pizza>>;
+  orders?: Maybe<Array<Maybe<Order>>>;
+  pizzas?: Maybe<Array<Maybe<Pizza>>>;
 };
 
 export type CreateOrderMutationVariables = Exact<{
@@ -85,17 +85,17 @@ export type CreateOrderMutationVariables = Exact<{
 }>;
 
 
-export type CreateOrderMutation = { __typename?: 'RootMutation', createdOrder?: { __typename?: 'Order', id: string, totalPrice: number, totalAmount: number, orderedPizzas: Array<{ __typename?: 'OrderedPizzas', pizzaName: string, dough: string, size: number, price: number, amount: number }> } | null | undefined };
+export type CreateOrderMutation = { __typename?: 'RootMutation', createdOrder?: { __typename?: 'Order', id?: string | null | undefined, totalPrice?: number | null | undefined, totalAmount?: number | null | undefined, orderedPizzas?: Array<{ __typename?: 'OrderedPizzas', pizzaName?: string | null | undefined, dough?: string | null | undefined, size?: number | null | undefined, price?: number | null | undefined, amount?: number | null | undefined } | null | undefined> | null | undefined } | null | undefined };
 
 export type GetOrdersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOrdersQuery = { __typename?: 'RootQuery', orders?: Array<{ __typename?: 'Order', id: string, totalPrice: number, totalAmount: number, orderedPizzas: Array<{ __typename?: 'OrderedPizzas', pizzaName: string, dough: string, size: number, price: number, amount: number }> }> | null | undefined };
+export type GetOrdersQuery = { __typename?: 'RootQuery', orders?: Array<{ __typename?: 'Order', id?: string | null | undefined, totalPrice?: number | null | undefined, totalAmount?: number | null | undefined, orderedPizzas?: Array<{ __typename?: 'OrderedPizzas', pizzaName?: string | null | undefined, dough?: string | null | undefined, size?: number | null | undefined, price?: number | null | undefined, amount?: number | null | undefined } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
 
 export type GetPizzasQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetPizzasQuery = { __typename?: 'RootQuery', pizzas?: Array<{ __typename?: 'Pizza', id: string, name: string, image: string, popularity: number, modifications: Array<{ __typename?: 'PizzaModification', id: string, dough: string, size: number, price: number }> }> | null | undefined };
+export type GetPizzasQuery = { __typename?: 'RootQuery', pizzas?: Array<{ __typename?: 'Pizza', id: string, name: string, image: string, popularity: number, modifications?: Array<{ __typename?: 'PizzaModification', id: string, dough: string, size: number, price: number } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
 
 
 export const CreateOrderDocument = gql`

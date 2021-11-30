@@ -1,23 +1,42 @@
-import { FC, useState } from "react";
-import { Link, useHistory } from "react-router-dom";
+import { FC, useEffect, useState } from "react";
+import { Container, Row, Col, Button, Table, Form, Spinner, Alert } from "react-bootstrap";
+import { sortBy } from "lodash";
 
-import { clearCart, getPizzasFromCart } from "helpers";
-import { useCreateOrderMutation } from "graphql/types";
+import { addPizzaToCart, clearCart, getPizzasFromCart, removePizzaFromCart } from "helpers";
+import { OrderedPizzasInput, useCreateOrderMutation } from "graphql/types";
 
 export const Cart: FC = () => {
-  const history = useHistory();
-  const [pizzas, setPizzas] = useState(getPizzasFromCart());
+  const [pizzas, setPizzas] = useState<OrderedPizzasInput[]>([]);
   const [createOrderMutation, { loading, error }] = useCreateOrderMutation();
+
+  const totalAmount = pizzas.reduce((prev, curr) => prev + curr.amount, 0);
+  const totalPrice = pizzas.reduce((prev, curr) => prev + curr.price * curr.amount, 0);
+
+  const updatePizzas = () => setPizzas(sortBy(getPizzasFromCart(), ["pizzaName", "size"]));
+
+  useEffect(() => {
+    updatePizzas();
+  }, []);
 
   const handleCartClear = () => {
     clearCart();
-    setPizzas([]);
+    updatePizzas();
+  };
+
+  const handlePizzaRemove = (pizza: OrderedPizzasInput) => {
+    removePizzaFromCart(pizza);
+    updatePizzas();
+  };
+
+  const handlePizzaAmountUpdate = (pizza: OrderedPizzasInput, amount: number) => {
+    removePizzaFromCart(pizza);
+
+    addPizzaToCart({ ...pizza, amount });
+
+    updatePizzas();
   };
 
   const handleOrder = async () => {
-    const totalAmount = pizzas.reduce((prev, curr) => prev + curr.amount, 0);
-    const totalPrice = pizzas.reduce((prev, curr) => prev + curr.price, 0);
-
     const { errors } = await createOrderMutation({
       variables: {
         order: {
@@ -26,51 +45,84 @@ export const Cart: FC = () => {
           orderedPizzas: pizzas,
         },
       },
+      fetchPolicy: "no-cache",
     });
 
     if (errors) return;
 
-    const shouldRedirectToOrders = window.confirm("Order was successfully added. Do you want to look at it?");
-    if (shouldRedirectToOrders) history.push("/orders");
     handleCartClear();
+
+    alert("Заказ создан успешно! Загляните в раздел 'Заказы' ;)");
   };
 
   return (
-    <div>
-      <h1>Cart</h1>
-      <hr />
-      <ul>
-        <li>
-          <Link to="/">Go to pizzas</Link>
-        </li>
-        <li>
-          <Link to="/orders">Go to orders</Link>
-        </li>
-      </ul>
-      <hr />
-      {pizzas.length === 0 ? (
-        <h2>Cart is empty</h2>
-      ) : (
-        <div>
-          <ul>
-            {pizzas.map((pizza, i) => (
-              <li key={i}>
-                <p>
-                  Pizza #{i + 1} - {pizza.pizzaName}
-                </p>
-                <p>Size: {pizza.size}</p>
-                <p>Amount: {pizza.amount}</p>
-                <p>Dough: {pizza.dough}</p>
-                <p>Price: {pizza.price}</p>
-              </li>
-            ))}
-          </ul>
-          <button onClick={handleCartClear}>Clear cart</button>
-          <button onClick={handleOrder}>Order</button>
-        </div>
+    <Container>
+      <Row>
+        <Col className="d-flex align-items-center justify-content-between">
+          <h1 className="py-3 mb-0">Корзина</h1>
+          {pizzas.length !== 0 && (
+            <Button onClick={handleCartClear} variant="light">
+              Очистить корзину
+            </Button>
+          )}
+        </Col>
+      </Row>
+
+      {(loading || error) && (
+        <Row className="justify-content-center">
+          {loading && <Spinner animation="grow" />}
+          {error && <Alert variant="danger">Что-то пошло не так!</Alert>}
+        </Row>
       )}
-      {loading && <h2>Order is loading...</h2>}
-      {error && <h2>Error happend while loading order!</h2>}
-    </div>
+
+      {pizzas.length === 0 ? (
+        <h2>Корзина пуста :(</h2>
+      ) : (
+        <>
+          <Table borderless>
+            <tbody>
+              {pizzas.map((pizza, i) => (
+                <tr key={i}>
+                  <td className="align-middle ps-0">
+                    <p className="mb-1">{pizza.pizzaName}</p>
+                    <p className="text-muted  mb-0">
+                      {pizza.dough}, {pizza.size} см.
+                    </p>
+                  </td>
+                  <td className="align-middle">
+                    <Form.Control
+                      type="number"
+                      name="amount"
+                      className="w-auto ms-auto"
+                      id={`${pizza.pizzaName}-${pizza.amount}`}
+                      min={1}
+                      value={pizza.amount}
+                      onChange={(e) => handlePizzaAmountUpdate(pizza, +e.target.value)}
+                    />
+                  </td>
+                  <td className="align-middle text-nowrap">{pizza.price * pizza.amount} $</td>
+                  <td className="align-middle text-end pe-0">
+                    <Button onClick={() => handlePizzaRemove(pizza)} variant="light">
+                      Удалить
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colSpan={2} className="ps-0">
+                  Всего пицц: {totalAmount} шт.
+                </th>
+                <th colSpan={2} className="pe-0 text-end">
+                  Сумма заказа: {totalPrice} $
+                </th>
+              </tr>
+            </tfoot>
+          </Table>
+          <Button onClick={handleOrder}>Заказать</Button>
+        </>
+      )}
+    </Container>
   );
 };
