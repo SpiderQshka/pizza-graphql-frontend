@@ -17,19 +17,20 @@ export const Pizzas: FC = () => {
           <h1 className="py-3 mb-0">Все пиццы</h1>
         </Col>
       </Row>
-      {(loading || error) && (
+      {loading || error ? (
         <Row className="justify-content-center">
           {loading && <Spinner animation="grow" />}
           {error && <Alert variant="danger">Что-то пошло не так!</Alert>}
         </Row>
+      ) : (
+        <Row>
+          {pizzas?.map((pizza) => (
+            <Col md="6" lg="4" xl="3" className="mb-4" key={pizza.id}>
+              <PizzaItem pizza={pizza as IPizzaItemProps["pizza"]} />
+            </Col>
+          ))}
+        </Row>
       )}
-      <Row>
-        {pizzas?.map((pizza) => (
-          <Col md="6" lg="4" xl="3" className="mb-4" key={pizza.id}>
-            <PizzaItem pizza={pizza as IPizzaItemProps["pizza"]} />
-          </Col>
-        ))}
-      </Row>
     </Container>
   );
 };

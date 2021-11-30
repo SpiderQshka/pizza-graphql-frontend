@@ -1,8 +1,22 @@
 import { FC, useEffect, useState } from "react";
-import { Container, Row, Col, Button, Table, Form, Spinner, Alert } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Button,
+  Table,
+  Form,
+  Spinner,
+  Alert,
+} from "react-bootstrap";
 import { sortBy } from "lodash";
 
-import { addPizzaToCart, clearCart, getPizzasFromCart, removePizzaFromCart } from "helpers";
+import {
+  addPizzaToCart,
+  clearCart,
+  getPizzasFromCart,
+  removePizzaFromCart,
+} from "helpers";
 import { OrderedPizzasInput, useCreateOrderMutation } from "graphql/types";
 
 export const Cart: FC = () => {
@@ -10,9 +24,12 @@ export const Cart: FC = () => {
   const [createOrderMutation, { loading, error }] = useCreateOrderMutation();
 
   const totalAmount = pizzas.reduce((prev, curr) => prev + curr.amount, 0);
-  const totalPrice = pizzas.reduce((prev, curr) => prev + curr.price * curr.amount, 0);
+  const totalPrice = +pizzas
+    .reduce((prev, curr) => prev + curr.price * curr.amount, 0)
+    .toFixed(2);
 
-  const updatePizzas = () => setPizzas(sortBy(getPizzasFromCart(), ["pizzaName", "size"]));
+  const updatePizzas = () =>
+    setPizzas(sortBy(getPizzasFromCart(), ["pizzaName", "size"]));
 
   useEffect(() => {
     updatePizzas();
@@ -28,7 +45,10 @@ export const Cart: FC = () => {
     updatePizzas();
   };
 
-  const handlePizzaAmountUpdate = (pizza: OrderedPizzasInput, amount: number) => {
+  const handlePizzaAmountUpdate = (
+    pizza: OrderedPizzasInput,
+    amount: number
+  ) => {
     removePizzaFromCart(pizza);
 
     addPizzaToCart({ ...pizza, amount });
@@ -68,14 +88,12 @@ export const Cart: FC = () => {
         </Col>
       </Row>
 
-      {(loading || error) && (
+      {loading || error ? (
         <Row className="justify-content-center">
           {loading && <Spinner animation="grow" />}
           {error && <Alert variant="danger">Что-то пошло не так!</Alert>}
         </Row>
-      )}
-
-      {pizzas.length === 0 ? (
+      ) : pizzas.length === 0 ? (
         <h2>Корзина пуста :(</h2>
       ) : (
         <>
@@ -97,12 +115,19 @@ export const Cart: FC = () => {
                       id={`${pizza.pizzaName}-${pizza.amount}`}
                       min={1}
                       value={pizza.amount}
-                      onChange={(e) => handlePizzaAmountUpdate(pizza, +e.target.value)}
+                      onChange={(e) =>
+                        handlePizzaAmountUpdate(pizza, +e.target.value)
+                      }
                     />
                   </td>
-                  <td className="align-middle text-nowrap">{pizza.price * pizza.amount} $</td>
+                  <td className="align-middle text-nowrap">
+                    {(pizza.price * pizza.amount).toFixed(2)} $
+                  </td>
                   <td className="align-middle text-end pe-0">
-                    <Button onClick={() => handlePizzaRemove(pizza)} variant="light">
+                    <Button
+                      onClick={() => handlePizzaRemove(pizza)}
+                      variant="light"
+                    >
                       Удалить
                     </Button>
                   </td>

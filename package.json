@@ -6,9 +6,9 @@
   "author": "SpiderQshka <prusov.200211@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "client:init": "cd client && yarn && yarn codegen",
-    "client:dev": "cd client && yarn start",
-    "server:dev": "cd server && yarn dev",
-    "server:init": "git submodule init && git submodule update && cd server && yarn"
+    "client:init": "cd client && npm install && npm run codegen",
+    "client:dev": "cd client && npm run start",
+    "server:dev": "cd server && npm run dev",
+    "server:init": "git submodule init && git submodule update && cd server && npm install"
   }
 }
