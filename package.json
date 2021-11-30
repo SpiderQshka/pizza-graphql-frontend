@@ -8,7 +8,9 @@
   "scripts": {
     "client:init": "cd client && npm install && npm run codegen",
     "client:dev": "cd client && npm run start",
+    "client:start": "npm run client:init && npm run client:dev",
     "server:dev": "cd server && npm run dev",
-    "server:init": "git submodule init && git submodule update && cd server && npm install"
+    "server:init": "git submodule init && git submodule update && cd server && npm install",
+    "server:start": "npm run server:init && npm run server:dev"
   }
 }
