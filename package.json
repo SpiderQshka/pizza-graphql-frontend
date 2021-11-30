@@ -6,6 +6,7 @@
   "author": "SpiderQshka <prusov.200211@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "client:setup": "cd client && yarn codegen",
     "client:dev": "cd client && yarn start",
     "server:dev": "cd server && yarn dev"
   }
