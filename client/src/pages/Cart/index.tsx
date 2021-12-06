@@ -1,59 +1,20 @@
-import { FC, useEffect, useState } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Button,
-  Table,
-  Form,
-  Spinner,
-  Alert,
-} from "react-bootstrap";
-import { sortBy } from "lodash";
+import { FC } from "react";
+import { Container, Row, Col, Button, Table, Form, Spinner, Alert } from "react-bootstrap";
 
-import {
-  addPizzaToCart,
-  clearCart,
-  getPizzasFromCart,
-  removePizzaFromCart,
-} from "helpers";
-import { OrderedPizzasInput, useCreateOrderMutation } from "graphql/types";
+import { addPizzaToCart, clearCart, removePizzaFromCart } from "helpers";
+import { OrderedPizzasInput, useCreateOrderMutation, useGetCartItemsQuery } from "graphql/types";
 
 export const Cart: FC = () => {
-  const [pizzas, setPizzas] = useState<OrderedPizzasInput[]>([]);
-  const [createOrderMutation, { loading, error }] = useCreateOrderMutation();
+  const { data, loading: cartItemsLoading, error: cartItemsError } = useGetCartItemsQuery();
+  const [createOrderMutation, { loading: orderMutationLoading, error: orderMutationError }] = useCreateOrderMutation();
 
-  const totalAmount = pizzas.reduce((prev, curr) => prev + curr.amount, 0);
-  const totalPrice = +pizzas
-    .reduce((prev, curr) => prev + curr.price * curr.amount, 0)
-    .toFixed(2);
+  const totalAmount = Number(data?.cartItems.reduce((prev, curr) => prev + curr.amount, 0));
+  const totalPrice = Number(data?.cartItems.reduce((prev, curr) => prev + curr.price * curr.amount, 0).toFixed(2));
 
-  const updatePizzas = () =>
-    setPizzas(sortBy(getPizzasFromCart(), ["pizzaName", "size"]));
-
-  useEffect(() => {
-    updatePizzas();
-  }, []);
-
-  const handleCartClear = () => {
-    clearCart();
-    updatePizzas();
-  };
-
-  const handlePizzaRemove = (pizza: OrderedPizzasInput) => {
-    removePizzaFromCart(pizza);
-    updatePizzas();
-  };
-
-  const handlePizzaAmountUpdate = (
-    pizza: OrderedPizzasInput,
-    amount: number
-  ) => {
+  const handlePizzaAmountUpdate = (pizza: OrderedPizzasInput, amount: number) => {
     removePizzaFromCart(pizza);
 
     addPizzaToCart({ ...pizza, amount });
-
-    updatePizzas();
   };
 
   const handleOrder = async () => {
@@ -62,7 +23,7 @@ export const Cart: FC = () => {
         order: {
           totalAmount,
           totalPrice,
-          orderedPizzas: pizzas,
+          orderedPizzas: data?.cartItems,
         },
       },
       fetchPolicy: "no-cache",
@@ -70,7 +31,7 @@ export const Cart: FC = () => {
 
     if (errors) return;
 
-    handleCartClear();
+    clearCart();
 
     alert("Заказ создан успешно! Загляните в раздел 'Заказы' ;)");
   };
@@ -80,26 +41,26 @@ export const Cart: FC = () => {
       <Row>
         <Col className="d-flex align-items-center justify-content-between">
           <h1 className="py-3 mb-0">Корзина</h1>
-          {pizzas.length !== 0 && (
-            <Button onClick={handleCartClear} variant="light">
+          {data?.cartItems.length !== 0 && (
+            <Button onClick={clearCart} variant="light">
               Очистить корзину
             </Button>
           )}
         </Col>
       </Row>
 
-      {loading || error ? (
+      {orderMutationLoading || cartItemsLoading || orderMutationError || cartItemsError ? (
         <Row className="justify-content-center">
-          {loading && <Spinner animation="grow" />}
-          {error && <Alert variant="danger">Что-то пошло не так!</Alert>}
+          {(orderMutationLoading || cartItemsLoading) && <Spinner animation="grow" />}
+          {(orderMutationError || cartItemsError) && <Alert variant="danger">Что-то пошло не так!</Alert>}
         </Row>
-      ) : pizzas.length === 0 ? (
+      ) : data?.cartItems.length === 0 ? (
         <h2>Корзина пуста :(</h2>
       ) : (
         <>
           <Table borderless>
             <tbody>
-              {pizzas.map((pizza, i) => (
+              {data?.cartItems.map((pizza, i) => (
                 <tr key={i}>
                   <td className="align-middle ps-0">
                     <p className="mb-1">{pizza.pizzaName}</p>
@@ -115,19 +76,12 @@ export const Cart: FC = () => {
                       id={`${pizza.pizzaName}-${pizza.amount}`}
                       min={1}
                       value={pizza.amount}
-                      onChange={(e) =>
-                        handlePizzaAmountUpdate(pizza, +e.target.value)
-                      }
+                      onChange={(e) => handlePizzaAmountUpdate(pizza, +e.target.value)}
                     />
                   </td>
-                  <td className="align-middle text-nowrap">
-                    {(pizza.price * pizza.amount).toFixed(2)} $
-                  </td>
+                  <td className="align-middle text-nowrap">{(pizza.price * pizza.amount).toFixed(2)} $</td>
                   <td className="align-middle text-end pe-0">
-                    <Button
-                      onClick={() => handlePizzaRemove(pizza)}
-                      variant="light"
-                    >
+                    <Button onClick={() => removePizzaFromCart(pizza)} variant="light">
                       Удалить
                     </Button>
                   </td>

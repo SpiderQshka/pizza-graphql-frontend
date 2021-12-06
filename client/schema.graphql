@@ -1,0 +1,11 @@
+type CartItem {
+  dough: String!
+  size: Int!
+  price: Float!
+  amount: Int!
+  pizzaName: String!
+}
+
+extend type RootQuery {
+  cartItems: [CartItem!]!
+}

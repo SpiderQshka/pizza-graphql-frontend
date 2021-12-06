@@ -1,0 +1,9 @@
+query GetCartItems {
+  cartItems @client {
+    dough
+    size
+    price
+    amount
+    pizzaName
+  }
+}

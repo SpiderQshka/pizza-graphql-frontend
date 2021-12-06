@@ -1,26 +1,27 @@
-import { OrderedPizzasInput } from "graphql/types";
-import { find, isEqual } from "lodash";
+import { makeVar } from "@apollo/client";
+import { CartItem } from "graphql/types";
+import { find, isEqual, sortBy } from "lodash";
 
-export const getPizzasFromCart = (): OrderedPizzasInput[] => JSON.parse(localStorage.getItem("cart") as string) || [];
+const cartItemsVar = makeVar<CartItem[]>(JSON.parse(localStorage.getItem("cart") as string) || []);
+const persistCart = () => localStorage.setItem("cart", JSON.stringify(cartItemsVar()));
 
-export const clearCart = (): void => localStorage.removeItem("cart");
+export const getPizzasFromCart = (): CartItem[] => sortBy(cartItemsVar(), ["pizzaName", "size"]);
 
-export const addPizzaToCart = (pizza: OrderedPizzasInput): void => {
-  const pizzas = getPizzasFromCart();
-  const updatedPizzas = [...pizzas, pizza];
-
-  localStorage.setItem("cart", JSON.stringify(updatedPizzas));
+export const clearCart = (): void => {
+  cartItemsVar([]);
+  persistCart();
 };
 
-export const removePizzaFromCart = (pizza: OrderedPizzasInput): void => {
-  const pizzas = getPizzasFromCart();
-  const updatedPizzas = pizzas.filter((el) => !isEqual(el, pizza));
-
-  localStorage.setItem("cart", JSON.stringify(updatedPizzas));
+export const addPizzaToCart = (pizza: CartItem): void => {
+  cartItemsVar([...cartItemsVar(), pizza]);
+  persistCart();
 };
 
-export const checkIsPizzaInCart = ({ amount, ...rest }: OrderedPizzasInput): boolean => {
-  const pizzas = getPizzasFromCart();
+export const removePizzaFromCart = (pizza: CartItem): void => {
+  const updatedPizzas = cartItemsVar().filter((el) => !isEqual(el, pizza));
 
-  return Boolean(find(pizzas, rest));
+  cartItemsVar(updatedPizzas);
+  persistCart();
 };
+
+export const checkIsPizzaInCart = ({ amount, ...rest }: CartItem): boolean => Boolean(find(cartItemsVar(), rest));
